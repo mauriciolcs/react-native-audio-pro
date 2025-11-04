@@ -1,4 +1,4 @@
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/shallow';
 
 import { internalStore } from './internalStore';
 
@@ -26,12 +26,6 @@ const selectAll = (state: AudioProStore): UseAudioProReturn => ({
 	error: state.error,
 });
 
-// Typed wrapper around the Zustand hook so we can reuse it below.
-const select = internalStore as unknown as <T>(
-	selector: (state: AudioProStore) => T,
-	equalityFn?: (left: T, right: T) => boolean,
-) => T;
-
 /**
  * React hook for accessing the current state of the audio player.
  *
@@ -40,17 +34,9 @@ const select = internalStore as unknown as <T>(
  * subscribe only to the specific piece of state your component needs.
  */
 export function useAudioPro(): UseAudioProReturn;
-export function useAudioPro<T>(
-	selector: (state: AudioProStore) => T,
-	equalityFn?: (left: T, right: T) => boolean,
-): T;
-export function useAudioPro<T>(
+export function useAudioPro<T>(selector: (state: AudioProStore) => T): T;
+export function useAudioPro<T extends UseAudioProReturn>(
 	selector?: (state: AudioProStore) => T,
-	equalityFn?: (left: T, right: T) => boolean,
 ): UseAudioProReturn | T {
-	if (selector) {
-		return select(selector, equalityFn);
-	}
-
-	return select(selectAll, shallow);
+	return internalStore(useShallow(selector ?? selectAll));
 }
